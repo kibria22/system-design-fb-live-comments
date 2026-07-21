@@ -90,6 +90,9 @@ Browser
 │   └── monitoring/          # Prometheus + Grafana values, scrapes, dashboard
 ├── loadtests/
 │   └── k6/                  # write-comments.js + in-cluster Job helper
+├── scripts/
+│   ├── deploy-all.sh        # create all cluster resources (+ optional monitoring)
+│   └── teardown-all.sh      # delete all resources + DB volume data
 └── services/
     ├── post-service/        # FastAPI app + Dockerfile
     ├── comments-service/    # Express (TypeScript) app + Dockerfile
@@ -107,6 +110,22 @@ Browser
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/) (for Envoy Gateway)
+
+---
+
+
+
+## Quick scripts
+
+From the repo root:
+
+```bash
+# Create everything (DBs, build images, apps, Gateway). Optional: --with-monitoring
+./scripts/deploy-all.sh
+
+# Tear down everything, including postgres/mongodb emptyDir (and any PVCs/PVs)
+./scripts/teardown-all.sh --yes
+```
 
 ---
 
