@@ -1,5 +1,7 @@
 # FB Live Comments
 
+Diagram: https://excalidraw.com/#json=dHJIlgC7vfSEhyj6F28dG,IvjPW11F4JVmMmOHYxZs-g
+
 Microservice architecture for Facebook Live–style posts and comments, designed to run on **Minikube**.
 
 ## Architecture
