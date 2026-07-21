@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-fb-live-comments
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+    app: fb-live-comments
+data:
+  fb-live-comments.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "reqps", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 0 },
+          "id": 1,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(envoy_http_downstream_rq_total{envoy_http_conn_manager_prefix=\"http-10080\"}[1m]))",
+              "legendFormat": "gateway total",
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=~\"httproute/fb-live-comments/.*\"}[1m]))",
+              "legendFormat": "{{envoy_cluster_name}}",
+              "refId": "B"
+            }
+          ],
+          "title": "Gateway / route RPS",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
+          "id": 2,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(envoy_http_downstream_rq_time_sum{envoy_http_conn_manager_prefix=\"http-10080\"}[5m])) / clamp_min(sum(rate(envoy_http_downstream_rq_time_count{envoy_http_conn_manager_prefix=\"http-10080\"}[5m])), 1e-9)",
+              "legendFormat": "gateway avg",
+              "refId": "A"
+            },
+            {
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(envoy_http_downstream_rq_time_bucket{envoy_http_conn_manager_prefix=\"http-10080\"}[5m])))",
+              "legendFormat": "gateway p50",
+              "refId": "B"
+            },
+            {
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(envoy_http_downstream_rq_time_bucket{envoy_http_conn_manager_prefix=\"http-10080\"}[5m])))",
+              "legendFormat": "gateway p95",
+              "refId": "C"
+            },
+            {
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(envoy_http_downstream_rq_time_bucket{envoy_http_conn_manager_prefix=\"http-10080\"}[5m])))",
+              "legendFormat": "gateway p99",
+              "refId": "D"
+            }
+          ],
+          "title": "Gateway latency (ms)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 7, "w": 24, "x": 0, "y": 7 },
+          "id": 3,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_time_sum{envoy_cluster_name=~\"httproute/fb-live-comments/.*\"}[5m])) / clamp_min(sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_time_count{envoy_cluster_name=~\"httproute/fb-live-comments/.*\"}[5m])), 1e-9)",
+              "legendFormat": "{{envoy_cluster_name}} avg",
+              "refId": "A"
+            },
+            {
+              "expr": "histogram_quantile(0.95, sum by (le, envoy_cluster_name) (rate(envoy_cluster_upstream_rq_time_bucket{envoy_cluster_name=~\"httproute/fb-live-comments/.*\"}[5m])))",
+              "legendFormat": "{{envoy_cluster_name}} p95",
+              "refId": "B"
+            }
+          ],
+          "title": "Upstream latency by route (ms)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "cores", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+          "id": 4,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"fb-live-comments\"})",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Pod CPU (cores)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+          "id": 5,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (node_namespace_pod_container:container_memory_working_set_bytes{namespace=\"fb-live-comments\"})",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Pod memory (working set)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "cores", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 22 },
+          "id": 6,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"fb-live-comments\", pod=~\"postgres-.*|mongodb-.*\"})",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "DB pods CPU",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 22 },
+          "id": 7,
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "expr": "sum by (pod) (node_namespace_pod_container:container_memory_working_set_bytes{namespace=\"fb-live-comments\", pod=~\"postgres-.*|mongodb-.*\"})",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "DB pods memory",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "tags": ["fb-live-comments", "envoy", "minikube"],
+      "templating": { "list": [] },
+      "time": { "from": "now-30m", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "FB Live Comments",
+      "uid": "fb-live-comments",
+      "version": 3
+    }

@@ -1,0 +1,22 @@
+# Scrapes Envoy Gateway data-plane proxies (RPS / latency / connections).
+# Metrics: http://<envoy-pod>:19001/stats/prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: envoy-proxies
+  namespace: monitoring
+  labels:
+    app: fb-live-comments
+spec:
+  namespaceSelector:
+    matchNames:
+      - envoy-gateway-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  podMetricsEndpoints:
+    - port: metrics
+      path: /stats/prometheus
+      interval: 15s
+      scrapeTimeout: 10s

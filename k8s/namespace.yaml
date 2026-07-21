@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fb-live-comments
+  labels:
+    app.kubernetes.io/part-of: fb-live-comments

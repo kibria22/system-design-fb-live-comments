@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: broadcast-service
+  namespace: fb-live-comments
+  labels:
+    app: broadcast-service
+spec:
+  type: ClusterIP
+  selector:
+    app: broadcast-service
+  ports:
+    - name: http
+      port: 3002
+      targetPort: 3002

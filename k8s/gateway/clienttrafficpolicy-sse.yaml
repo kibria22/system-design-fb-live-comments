@@ -1,0 +1,15 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: gateway-sse
+  namespace: fb-live-comments
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: api-gateway
+  timeout:
+    http:
+      # Keep idle SSE streams open (heartbeats every 15s also help).
+      # Default streamIdleTimeout is 5m; raise so brief quiet periods are fine.
+      streamIdleTimeout: "60m"

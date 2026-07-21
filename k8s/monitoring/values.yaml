@@ -1,0 +1,87 @@
+# Slim kube-prometheus-stack settings for Minikube.
+# Install:
+#   helm upgrade --install monitoring \
+#     oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack \
+#     --version 69.8.2 -n monitoring --create-namespace \
+#     -f k8s/monitoring/values.yaml
+
+alertmanager:
+  enabled: false
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+  prometheusSpec:
+    retention: 6h
+    scrapeInterval: 15s
+    # Pick up ServiceMonitors / PodMonitors from any namespace (not only release-labeled ones).
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    # Pick up custom PrometheusRules (e.g. minikube pod-usage recording rules).
+    ruleSelectorNilUsesHelmValues: false
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+    storageSpec: {}
+
+grafana:
+  adminUser: admin
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30300
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+  # Auto-load dashboards from ConfigMaps labeled grafana_dashboard=1
+  # (Prometheus datasource is provisioned by the chart sidecar — don't redefine it.)
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: true
+
+
+kubeEtcd:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+# Keep node/pod resource metrics (kubelet / cAdvisor / kube-state-metrics).
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

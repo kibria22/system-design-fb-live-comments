@@ -1,0 +1,18 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: frontend
+  namespace: fb-live-comments
+spec:
+  parentRefs:
+    - name: api-gateway
+      sectionName: http
+  rules:
+    # Catch-all UI route. More specific /v1/* HTTPRoutes take precedence.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: frontend
+          port: 3000

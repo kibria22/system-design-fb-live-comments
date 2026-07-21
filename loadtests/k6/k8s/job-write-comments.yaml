@@ -1,0 +1,62 @@
+# In-cluster k6 Job — hits the Envoy Gateway Service (no port-forward).
+# Prefer: ./loadtests/k6/run-in-cluster.sh -e POST_ID=... -e RPS=100
+#
+# Manual:
+#   kubectl -n fb-live-comments create configmap k6-write-comments \
+#     --from-file=write-comments.js=loadtests/k6/write-comments.js \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#   kubectl -n fb-live-comments delete job k6-write-comments --ignore-not-found
+#   # set POST_ID / RPS / parallelism, then:
+#   kubectl apply -f loadtests/k6/k8s/job-write-comments.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-write-comments
+  namespace: fb-live-comments
+  labels:
+    app: k6-write-comments
+spec:
+  # Raise parallelism for distributed load (total RPS ≈ RPS × parallelism).
+  parallelism: 1
+  completions: 1
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: k6-write-comments
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.54.0
+          imagePullPolicy: IfNotPresent
+          args: ["run", "/scripts/write-comments.js"]
+          env:
+            - name: BASE_URL
+              value: http://api-gateway.envoy-gateway-system.svc.cluster.local
+            - name: POST_ID
+              value: "REPLACE_ME"
+            - name: RPS
+              value: "100"
+            - name: DURATION
+              value: "60s"
+            - name: PRE_VUS
+              value: "100"
+            - name: MAX_VUS
+              value: "400"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-write-comments

@@ -1,0 +1,54 @@
+# Minikube (Docker driver) often exposes only pod-level cAdvisor series
+# without a `container` label. Stock kube-prometheus dashboards filter
+# container!="" and show "No data". These rules fill the gap so
+# Kubernetes / Compute Resources / Workload|Pod graphs work.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: minikube-pod-usage
+  namespace: monitoring
+  labels:
+    app: fb-live-comments
+    release: monitoring
+spec:
+  groups:
+    - name: minikube.pod.usage
+      interval: 30s
+      rules:
+        - record: node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate
+          expr: |
+            sum by (namespace, pod, node) (
+              irate(
+                container_cpu_usage_seconds_total{
+                  job="kubelet",
+                  metrics_path="/metrics/cadvisor"
+                }[5m]
+              )
+            )
+
+        - record: node_namespace_pod_container:container_memory_working_set_bytes
+          expr: |
+            sum by (namespace, pod, node) (
+              container_memory_working_set_bytes{
+                job="kubelet",
+                metrics_path="/metrics/cadvisor"
+              }
+            )
+
+        - record: node_namespace_pod_container:container_memory_rss
+          expr: |
+            sum by (namespace, pod, node) (
+              container_memory_rss{
+                job="kubelet",
+                metrics_path="/metrics/cadvisor"
+              }
+            )
+
+        - record: node_namespace_pod_container:container_memory_cache
+          expr: |
+            sum by (namespace, pod, node) (
+              container_memory_cache{
+                job="kubelet",
+                metrics_path="/metrics/cadvisor"
+              }
+            )
